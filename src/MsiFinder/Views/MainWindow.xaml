@@ -1,0 +1,240 @@
+﻿<Window x:Class="MsiFinder.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModel="clr-namespace:MsiFinder.ViewModel"
+        xmlns:views="clr-namespace:MsiFinder.Views"
+        xmlns:forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+        mc:Ignorable="d"
+        Height="570" Width="720"
+        DataContext="{Binding Source={StaticResource Locator}, Path=Main}"
+        Title="{Binding Source={x:Static forms:Application.ProductVersion}, StringFormat='MSI Finder {0}'}">
+
+    <Window.Resources>
+
+        <DataTemplate DataType="{x:Type viewModel:TextItemViewModel}">
+            <Grid>
+                <TextBlock Text="{Binding Text}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource LoadingTextBlockStyle}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Type}"
+                                             Value="{x:Static viewModel:TextItemType.Information}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Text="{Binding Text}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Type}" Value="{x:Static viewModel:TextItemType.Error}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TreeViewItem}}"
+                                             Value="False">
+                                    <Setter Property="Foreground" Value="Red" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </DataTemplate>
+
+        <HierarchicalDataTemplate DataType="{x:Type viewModel:ComponentViewModel}" ItemsSource="{Binding Items}">
+            <views:ComponentView />
+        </HierarchicalDataTemplate>
+
+        <HierarchicalDataTemplate DataType="{x:Type viewModel:ProductViewModel}" ItemsSource="{Binding Items}">
+            <views:ProductView />
+        </HierarchicalDataTemplate>
+
+    </Window.Resources>
+
+    <DockPanel LastChildFill="True" Margin="8">
+
+        <Grid DockPanel.Dock="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <GroupBox Grid.Column="0" Header="Search Type" Padding="4" Margin="0,0,8,0"
+                      IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}">
+                <ListBox Style="{StaticResource PlainListBoxStyle}" SelectedItem="{Binding SearchFor, Mode=TwoWay}">
+                    <ListBox.ItemsSource>
+                        <x:Array Type="viewModel:SearchFor">
+                            <viewModel:SearchFor>Product</viewModel:SearchFor>
+                            <viewModel:SearchFor>Component</viewModel:SearchFor>
+                        </x:Array>
+                    </ListBox.ItemsSource>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type viewModel:SearchFor}">
+                            <RadioButton Content="{Binding}" Margin="0,0,16,0">
+                                <RadioButton.IsChecked>
+                                    <Binding Path="IsSelected"
+                                             RelativeSource="{RelativeSource AncestorType=ListBoxItem}"
+                                             Mode="TwoWay" />
+                                </RadioButton.IsChecked>
+                            </RadioButton>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </GroupBox>
+            <GroupBox Grid.Column="1" Header="Filter" Padding="4"
+                      IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}">
+                <ListBox Style="{StaticResource PlainListBoxStyle}"
+                         SelectedItem="{Binding SearchBy, Mode=TwoWay}">
+                    <ListBox.ItemsSource>
+                        <x:Array Type="viewModel:SearchBy">
+                            <viewModel:SearchBy>None</viewModel:SearchBy>
+                            <viewModel:SearchBy>Code</viewModel:SearchBy>
+                            <viewModel:SearchBy>Name</viewModel:SearchBy>
+                            <viewModel:SearchBy>Location</viewModel:SearchBy>
+                        </x:Array>
+                    </ListBox.ItemsSource>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type viewModel:SearchBy}">
+                            <RadioButton Content="{Binding}" Margin="0,0,16,0">
+                                <RadioButton.IsChecked>
+                                    <Binding Path="IsSelected"
+                                             RelativeSource="{RelativeSource AncestorType=ListBoxItem}"
+                                             Mode="TwoWay" />
+                                </RadioButton.IsChecked>
+                            </RadioButton>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource PlainListBoxItemStyle}">
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition
+                                            Binding="{Binding Source={StaticResource Locator}, Path=Main.SearchFor}"
+                                            Value="{x:Static viewModel:SearchFor.Component}" />
+                                        <Condition Binding="{Binding}"
+                                                   Value="{x:Static viewModel:SearchBy.Name}" />
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="IsEnabled" Value="False" />
+                                </MultiDataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition
+                                            Binding="{Binding Source={StaticResource Locator}, Path=Main.SearchFor}"
+                                            Value="{x:Static viewModel:SearchFor.Component}" />
+                                        <Condition Binding="{Binding}"
+                                                   Value="{x:Static viewModel:SearchBy.Location}" />
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="IsEnabled" Value="False" />
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+            </GroupBox>
+        </Grid>
+
+        <Grid DockPanel.Dock="Top" Height="23" Margin="0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0" Margin="0,0,8,0">
+                <TextBox Name="SearchTextBox" Text="{Binding SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox" BasedOn="{StaticResource ControlStyle}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding SearchBy}" Value="{x:Static viewModel:SearchBy.None}">
+                                    <Setter Property="IsEnabled" Value="False" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+                <TextBlock Margin="4,1" Opacity="0.3" IsHitTestVisible="False">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SearchBy}" Value="{x:Static viewModel:SearchBy.Code}">
+                                    <Setter Property="Text" Value="Enter product/component code, such as '32B140BD-8636-41AD-8CF9-0B88ECD0119A'" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding SearchBy}" Value="{x:Static viewModel:SearchBy.Name}">
+                                    <Setter Property="Text" Value="Enter full or partial product name" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding SearchBy}" Value="{x:Static viewModel:SearchBy.Location}">
+                                    <Setter Property="Text" Value="Enter product install location (wildcards are supported), such as 'C:\Program Files\*'" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding ElementName=SearchTextBox, Path=Text}" Value="">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+            <Button Grid.Column="1" Width="70">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsBusy}" Value="False">
+                                <Setter Property="Content" Value="Search" />
+                                <Setter Property="IsDefault" Value="True" />
+                                <Setter Property="Command" Value="{Binding SearchCommand}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                <Setter Property="Content" Value="Stop" />
+                                <Setter Property="IsCancel" Value="True" />
+                                <Setter Property="Command" Value="{Binding StopCommand}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
+
+        <TreeView Name="TreeView" ItemsSource="{Binding Results}">
+            <TreeView.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
+                                 Color="{x:Static SystemColors.HighlightColor}" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
+                                 Color="{x:Static SystemColors.HighlightTextColor}" />
+                
+            </TreeView.Resources>
+            <TreeView.InputBindings>
+                <KeyBinding Modifiers="Ctrl" Key="C">
+                    <KeyBinding.Command>
+                        <Binding ElementName="TreeView" Path="SelectedItem.(viewModel:RecordViewModel.CopyCodeCommand)" />
+                    </KeyBinding.Command>
+                </KeyBinding>
+            </TreeView.InputBindings>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="Padding" Value="4" />
+                    <EventSetter Event="MouseRightButtonDown" Handler="TreeViewItemRightMouseDown" />
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu d:DataContext="{d:DesignInstance viewModel:RecordViewModel}">
+                                <MenuItem Header="Copy Code" Command="{Binding CopyCodeCommand}" InputGestureText="Ctrl+C" />
+                                <MenuItem Header="Copy Code (Registry Format)" Command="{Binding CopyRegistryCodeCommand}" />
+                                <Separator />
+                                <MenuItem Header="Open in Windows Explorer" Command="{Binding OpenWindowsExplorerCommand}" />
+                                <MenuItem Header="Open in Registry Editor" Command="{Binding OpenRegistryEditorCommand}" />
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TreeView.ItemContainerStyle>
+        </TreeView>
+
+    </DockPanel>
+
+</Window>

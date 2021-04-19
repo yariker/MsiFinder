@@ -1,0 +1,51 @@
+﻿<UserControl x:Class="MsiFinder.Views.ComponentView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:MsiFinder.Views"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:viewModel="clr-namespace:MsiFinder.ViewModel"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance viewModel:ComponentViewModel}"
+             Foreground="Black"
+             Background="LightYellow"
+             BorderBrush="DarkOrange"
+             BorderThickness="1"
+             Padding="8">
+
+    <Grid>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="8" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" FontWeight="SemiBold" Text="Component" />
+
+        <TextBlock Grid.Column="0" Grid.Row="1" Text="Code:" />
+        <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding Path=Model.Code}" d:Text="{}{1DC54AAC-C369-41FC-9AE2-DBD83A14E4B9}" />
+        <TextBlock Grid.Column="0" Grid.Row="2" Text="Context:" />
+        <TextBlock Grid.Column="2" Grid.Row="2" Text="{Binding Path=Model.Context}" d:Text="Machine" />
+        <TextBlock Grid.Column="0" Grid.Row="3" Text="Account:" />
+        <TextBlock Grid.Column="2" Grid.Row="3" Text="{Binding Account}" d:Text="NT AUTHORITY\System" />
+        <TextBlock Grid.Column="0" Grid.Row="4" Text="Location:" />
+        <TextBlock Grid.Column="2" Grid.Row="4" Text="{Binding Location, TargetNullValue='Not available'}" d:Text="C:\Windows" />
+    </Grid>
+
+    <b:Interaction.Triggers>
+        <b:EventTrigger SourceObject="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}}" EventName="Expanded">
+            <b:InvokeCommandAction Command="{Binding ExpandCommand}" />
+        </b:EventTrigger>
+    </b:Interaction.Triggers>
+
+</UserControl>
