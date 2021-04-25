@@ -41,7 +41,7 @@ jobs:
         name: ${{ format('MsiFinder_v{0}', steps.git_version.outputs.version) }}
         path: ${{ env.build_dir }}
     - name: Automatic Releases
-      if: ${{ github.event == 'release' }}
+      if: ${{ github.event_name == 'Release' }}
       uses: marvinpinto/action-automatic-releases@v1.1.1
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
