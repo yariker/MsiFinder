@@ -12,42 +12,46 @@ on:
   release:
     branches: [main]
     types: [published]
-    
-env:
-  BUILD_DIR: build
-    
+
 jobs:
   build:
     runs-on: windows-latest
     steps:
+
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Semantic Version
-      uses: ncipollo/semantic-version-action@v1
-      id: git_version
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
+
     - name: Restore dependencies
       run: dotnet restore
+
+    - name: Generate Version
+      run: get-version.ps1
+
     - name: Build
-      env:
-        BUILD_VERSION: ${{ format('{0}.{1}.{2}.{3}', steps.git_version.outputs.major, steps.git_version.outputs.minor, steps.git_version.outputs.patch, github.run_number) }}
-      run: dotnet build -c Release -o $env:BUILD_DIR -p:Version=$env:BUILD_VERSION --no-restore
+      run: dotnet build -c Release -o build -p:Version=$env:BUILD_VERSION --no-restore
+
     - name: Test
       run: dotnet test --no-build --verbosity normal
+
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.2.3
       with:
-        path: ${{ env.BUILD_DIR }}
+        path: build
+        name: ${{ format('MsiFinder_{0}.zip', env.BUILD_VERSION) }}
+
     - name: Zip Release
       uses: vimtor/action-zip@v1
       if: ${{ github.event_name == 'Release' }}
       with:
         files: |
-          ${{ env.BUILD_DIR }}
+          build
           LICENSE
-        dest: ${{ format('MsiFinder_{0}.zip', github.ref) }}
+        dest: ${{ format('MsiFinder_{0}.zip', env.BUILD_VERSION) }}
+
     - name: Upload Release
       uses: svenstaro/upload-release-action@2.2.1
       if: ${{ github.event_name == 'Release' }}
