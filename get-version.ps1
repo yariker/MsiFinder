@@ -10,3 +10,4 @@ if ($Version.Build -lt 0 -and $env:GITHUB_RUN_NUMBER) {
 
 Write-Output "BUILD_VERSION=$Version" >> $env:GITHUB_ENV
 $Version.ToString()
+exit 0
