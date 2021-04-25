@@ -18,14 +18,19 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Git Version
-      uses: codacy/git-version@2.4.0
+      uses: PaulHatch/semantic-version@v4.0.2
+      id: git_version
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build -c Release -o $env:build_dir -p:Version="$(git-version)" --no-restore
+      env:
+        build_version: ${{ steps.git_version.outputs.version }}
+      run: dotnet build -c Release -o $env:build_dir -p:Version=$env:build_version --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Upload a Build Artifact
