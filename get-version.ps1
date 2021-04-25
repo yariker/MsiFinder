@@ -5,7 +5,7 @@ if (-not $?) {
 
 $Version = [Version]::Parse($Tag.TrimStart('v'))
 if ($Version.Build -lt 0 -and $env:GITHUB_RUN_NUMBER) {
-    $Version.Build = [Version]::new($Version.Major, [Math]::Max($Version.Minor, 0), $env:GITHUB_RUN_NUMBER)
+    $Version = [Version]::new($Version.Major, [Math]::Max($Version.Minor, 0), $env:GITHUB_RUN_NUMBER)
 }
 
 Write-Output "BUILD_VERSION=$Version" >> $env:GITHUB_ENV
