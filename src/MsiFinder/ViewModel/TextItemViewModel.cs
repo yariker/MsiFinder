@@ -1,4 +1,6 @@
-﻿namespace MsiFinder.ViewModel
+﻿using MsiFinder.Model;
+
+namespace MsiFinder.ViewModel
 {
     public class TextItemViewModel : ItemViewModel
     {

@@ -6,6 +6,7 @@
         xmlns:viewModel="clr-namespace:MsiFinder.ViewModel"
         xmlns:views="clr-namespace:MsiFinder.Views"
         xmlns:forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+        xmlns:model="clr-namespace:MsiFinder.Model"
         mc:Ignorable="d"
         Height="570" Width="720"
         DataContext="{Binding Source={StaticResource Locator}, Path=Main}"
@@ -22,7 +23,7 @@
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Type}"
-                                             Value="{x:Static viewModel:TextItemType.Information}">
+                                             Value="{x:Static model:TextItemType.Information}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -34,7 +35,7 @@
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Type}" Value="{x:Static viewModel:TextItemType.Error}">
+                                <DataTrigger Binding="{Binding Type}" Value="{x:Static model:TextItemType.Error}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TreeViewItem}}"
@@ -69,13 +70,13 @@
                       IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}">
                 <ListBox Style="{StaticResource PlainListBoxStyle}" SelectedItem="{Binding SearchFor, Mode=TwoWay}">
                     <ListBox.ItemsSource>
-                        <x:Array Type="viewModel:SearchFor">
-                            <viewModel:SearchFor>Product</viewModel:SearchFor>
-                            <viewModel:SearchFor>Component</viewModel:SearchFor>
+                        <x:Array Type="model:SearchFor">
+                            <model:SearchFor>Product</model:SearchFor>
+                            <model:SearchFor>Component</model:SearchFor>
                         </x:Array>
                     </ListBox.ItemsSource>
                     <ListBox.ItemTemplate>
-                        <DataTemplate DataType="{x:Type viewModel:SearchFor}">
+                        <DataTemplate DataType="{x:Type model:SearchFor}">
                             <RadioButton Content="{Binding}" Margin="0,0,16,0">
                                 <RadioButton.IsChecked>
                                     <Binding Path="IsSelected"
@@ -92,15 +93,15 @@
                 <ListBox Style="{StaticResource PlainListBoxStyle}"
                          SelectedItem="{Binding SearchBy, Mode=TwoWay}">
                     <ListBox.ItemsSource>
-                        <x:Array Type="viewModel:SearchBy">
-                            <viewModel:SearchBy>None</viewModel:SearchBy>
-                            <viewModel:SearchBy>Code</viewModel:SearchBy>
-                            <viewModel:SearchBy>Name</viewModel:SearchBy>
-                            <viewModel:SearchBy>Location</viewModel:SearchBy>
+                        <x:Array Type="model:SearchBy">
+                            <model:SearchBy>None</model:SearchBy>
+                            <model:SearchBy>Code</model:SearchBy>
+                            <model:SearchBy>Name</model:SearchBy>
+                            <model:SearchBy>Location</model:SearchBy>
                         </x:Array>
                     </ListBox.ItemsSource>
                     <ListBox.ItemTemplate>
-                        <DataTemplate DataType="{x:Type viewModel:SearchBy}">
+                        <DataTemplate DataType="{x:Type model:SearchBy}">
                             <RadioButton Content="{Binding}" Margin="0,0,16,0">
                                 <RadioButton.IsChecked>
                                     <Binding Path="IsSelected"
@@ -115,21 +116,17 @@
                             <Style.Triggers>
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
-                                        <Condition
-                                            Binding="{Binding Source={StaticResource Locator}, Path=Main.SearchFor}"
-                                            Value="{x:Static viewModel:SearchFor.Component}" />
-                                        <Condition Binding="{Binding}"
-                                                   Value="{x:Static viewModel:SearchBy.Name}" />
+                                        <Condition Binding="{Binding Source={StaticResource Locator}, Path=Main.SearchFor}"
+                                                   Value="{x:Static model:SearchFor.Component}" />
+                                        <Condition Binding="{Binding}" Value="{x:Static model:SearchBy.Name}" />
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="IsEnabled" Value="False" />
                                 </MultiDataTrigger>
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
-                                        <Condition
-                                            Binding="{Binding Source={StaticResource Locator}, Path=Main.SearchFor}"
-                                            Value="{x:Static viewModel:SearchFor.Component}" />
-                                        <Condition Binding="{Binding}"
-                                                   Value="{x:Static viewModel:SearchBy.Location}" />
+                                        <Condition Binding="{Binding Source={StaticResource Locator}, Path=Main.SearchFor}"
+                                                   Value="{x:Static model:SearchFor.Component}" />
+                                        <Condition Binding="{Binding}" Value="{x:Static model:SearchBy.Location}" />
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="IsEnabled" Value="False" />
                                 </MultiDataTrigger>
@@ -153,7 +150,7 @@
                                 <DataTrigger Binding="{Binding IsBusy}" Value="True">
                                     <Setter Property="IsEnabled" Value="False" />
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding SearchBy}" Value="{x:Static viewModel:SearchBy.None}">
+                                <DataTrigger Binding="{Binding SearchBy}" Value="{x:Static model:SearchBy.None}">
                                     <Setter Property="IsEnabled" Value="False" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -165,14 +162,16 @@
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding SearchBy}" Value="{x:Static viewModel:SearchBy.Code}">
-                                    <Setter Property="Text" Value="Enter product/component code, such as '32B140BD-8636-41AD-8CF9-0B88ECD0119A'" />
+                                <DataTrigger Binding="{Binding SearchBy}" Value="{x:Static model:SearchBy.Code}">
+                                    <Setter Property="Text"
+                                            Value="Enter product/component code, such as '32B140BD-8636-41AD-8CF9-0B88ECD0119A'" />
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding SearchBy}" Value="{x:Static viewModel:SearchBy.Name}">
+                                <DataTrigger Binding="{Binding SearchBy}" Value="{x:Static model:SearchBy.Name}">
                                     <Setter Property="Text" Value="Enter full or partial product name" />
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding SearchBy}" Value="{x:Static viewModel:SearchBy.Location}">
-                                    <Setter Property="Text" Value="Enter product install location (wildcards are supported), such as 'C:\Program Files\*'" />
+                                <DataTrigger Binding="{Binding SearchBy}" Value="{x:Static model:SearchBy.Location}">
+                                    <Setter Property="Text"
+                                            Value="Enter product install location (wildcards are supported), such as 'C:\Program Files\*'" />
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding ElementName=SearchTextBox, Path=Text}" Value="">
                                     <Setter Property="Visibility" Value="Visible" />
@@ -208,7 +207,7 @@
                                  Color="{x:Static SystemColors.HighlightColor}" />
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
                                  Color="{x:Static SystemColors.HighlightTextColor}" />
-                
+
             </TreeView.Resources>
             <TreeView.InputBindings>
                 <KeyBinding Modifiers="Ctrl" Key="C">

@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Windows.Input;
 using MvvmMicro;
 
-namespace MsiFinder.ViewModel
+namespace MsiFinder.ViewModel.Core
 {
     public abstract class ValidatingViewModel : ViewModelBase, INotifyDataErrorInfo
     {

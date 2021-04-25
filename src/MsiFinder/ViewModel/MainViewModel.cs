@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using MsiFinder.Model;
+using MsiFinder.ViewModel.Core;
 using MvvmMicro;
 using static MsiFinder.Model.NativeMethods;
 

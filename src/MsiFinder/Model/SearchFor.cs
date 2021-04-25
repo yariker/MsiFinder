@@ -1,4 +1,4 @@
-﻿namespace MsiFinder.ViewModel
+﻿namespace MsiFinder.Model
 {
     public enum SearchFor
     {

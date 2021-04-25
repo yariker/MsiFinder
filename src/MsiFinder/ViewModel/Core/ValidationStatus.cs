@@ -1,4 +1,4 @@
-﻿namespace MsiFinder.ViewModel
+﻿namespace MsiFinder.ViewModel.Core
 {
     public enum ValidationStatus
     {
