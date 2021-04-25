@@ -1,4 +1,4 @@
-<h1 align="center"><img alt="Logo" src="assets/Icon64.png" width="50" height="50" /><br/>MSI Finder</h1>
+<h1 align="center"><img alt="Logo" src="assets/Icon.svg" width="50" height="50" /><br/>MSI Finder</h1>
 
 MSI finder is a simple tool that lets you search for Windows Installer (also known as MSI) [products](https://docs.microsoft.com/en-us/windows/win32/msi/product-codes) and [components](https://docs.microsoft.com/en-us/windows/win32/msi/windows-installer-components) installed on your local PC, which can be useful for diagnostic purposes.
 
