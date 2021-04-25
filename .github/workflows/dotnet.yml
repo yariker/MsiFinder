@@ -47,9 +47,7 @@ jobs:
       uses: vimtor/action-zip@v1
       if: ${{ github.event_name == 'Release' }}
       with:
-        files: |
-          build
-          LICENSE
+        files: build/ LICENSE
         dest: ${{ format('MsiFinder_v{0}.zip', env.BUILD_VERSION) }}
 
     - name: Upload Release
