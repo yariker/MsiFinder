@@ -1,4 +1,4 @@
-$ErrorActionPreference = SilentlyContinue
+$ErrorActionPreference = "SilentlyContinue"
 
 $Tag = git describe --tags --abbrev=0 --match v[0-9]* HEAD 2>&1 | Out-String
 if ($LASTEXITCODE -ne 0) {
