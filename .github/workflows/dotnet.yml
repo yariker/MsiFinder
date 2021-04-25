@@ -36,4 +36,5 @@ jobs:
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.2.3
       with:
+        name: ${{ format('MsiFinder_v{0}', steps.git_version.outputs.version }}
         path: ${{ env.build_dir }}
