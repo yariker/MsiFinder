@@ -57,6 +57,7 @@ namespace MsiFinder.ViewModel
                 if (Set(ref _searchFor, value))
                 {
                     CoerceFilters();
+                    ClearError(nameof(SearchQuery));
                 }
             }
         }

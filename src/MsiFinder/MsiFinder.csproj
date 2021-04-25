@@ -6,6 +6,7 @@
     <UseWPF>true</UseWPF>
     <LangVersion>latest</LangVersion>
     <Copyright>(c) Yaroslav Bugaria, $([System.DateTime]::Now.Year)</Copyright>
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
