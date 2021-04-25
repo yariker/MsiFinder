@@ -1,0 +1,34 @@
+name: .NET
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/README.md'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**/README.md'
+    
+env:
+  build_dir: build
+    
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Git Version
+      uses: codacy/git-version@2.4.0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build -c Release -o $env:build_dir -p:Version="$(git-version)" --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.2.3
+      with:
+        path: ${{ env.build_dir }}
