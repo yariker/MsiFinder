@@ -23,18 +23,16 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Git Version
-      uses: PaulHatch/semantic-version@v4.0.2
+    - name: Semantic Version
+      uses: ncipollo/semantic-version-action@v1
       id: git_version
-      with:
-        bump_each_commit: true
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
       env:
-        BUILD_VERSION: ${{ steps.git_version.outputs.version }}
+        BUILD_VERSION: ${{ format('{0}.{1}.{2}.{3}', steps.git_version.outputs.major, steps.git_version.outputs.minor, steps.git_version.outputs.patch, github.run_number) }}
       run: dotnet build -c Release -o $env:BUILD_DIR -p:Version=$env:BUILD_VERSION --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
@@ -49,7 +47,7 @@ jobs:
         files: |
           ${{ env.BUILD_DIR }}
           LICENSE
-        dest: ${{ format('MsiFinder_v{0}.zip', steps.git_version.outputs.version) }}
+        dest: ${{ format('MsiFinder_{0}.zip', github.ref) }}
     - name: Upload Release
       uses: svenstaro/upload-release-action@2.2.1
       if: ${{ github.event_name == 'Release' }}
