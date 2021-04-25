@@ -29,7 +29,7 @@ jobs:
       run: dotnet restore
 
     - name: Generate Version
-      run: get-version.ps1
+      run: .\get-version.ps1
 
     - name: Build
       run: dotnet build -c Release -o build -p:Version=$env:BUILD_VERSION --no-restore
