@@ -41,7 +41,7 @@ jobs:
       uses: actions/upload-artifact@v2.2.3
       with:
         path: build
-        name: ${{ format('MsiFinder_v{0}.zip', env.BUILD_VERSION) }}
+        name: ${{ format('MsiFinder_v{0}', env.BUILD_VERSION) }}
 
     - name: Zip Release
       uses: vimtor/action-zip@v1
