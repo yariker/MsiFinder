@@ -1,6 +1,6 @@
-$ErrorActionPreference = "SilentlyContinue"
+$ErrorActionPreference = "Continue"
 
-$Tag = git describe --tags --abbrev=0 --match v[0-9]* HEAD 2>&1 | Out-String
+$Tag = git describe --tags --abbrev=0 --match v[0-9]* HEAD 2>&1
 if ($LASTEXITCODE -ne 0) {
     $Tag = "v0.0"
 }

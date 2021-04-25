@@ -22,14 +22,14 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Generate Version
+      run: .\get-version.ps1
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
 
     - name: Restore dependencies
       run: dotnet restore
-
-    - name: Generate Version
-      run: .\get-version.ps1
 
     - name: Build
       run: dotnet build -c Release -o build -p:Version=$env:BUILD_VERSION --no-restore
@@ -37,11 +37,11 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
 
-    - name: Upload a Build Artifact
+    - name: Upload Build Artifact
       uses: actions/upload-artifact@v2.2.3
       with:
         path: build
-        name: ${{ format('MsiFinder_{0}.zip', env.BUILD_VERSION) }}
+        name: ${{ format('MsiFinder_v{0}.zip', env.BUILD_VERSION) }}
 
     - name: Zip Release
       uses: vimtor/action-zip@v1
@@ -50,7 +50,7 @@ jobs:
         files: |
           build
           LICENSE
-        dest: ${{ format('MsiFinder_{0}.zip', env.BUILD_VERSION) }}
+        dest: ${{ format('MsiFinder_v{0}.zip', env.BUILD_VERSION) }}
 
     - name: Upload Release
       uses: svenstaro/upload-release-action@2.2.1
