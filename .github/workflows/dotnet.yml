@@ -9,6 +9,8 @@ on:
     branches: [main]
     paths-ignore:
       - '**/README.md'
+  release:
+    branches: [main]
     
 env:
   build_dir: build
@@ -38,3 +40,9 @@ jobs:
       with:
         name: ${{ format('MsiFinder_v{0}', steps.git_version.outputs.version) }}
         path: ${{ env.build_dir }}
+    - name: Automatic Releases
+      if: ${{ github.event == 'release' }}
+      uses: marvinpinto/action-automatic-releases@v1.1.1
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        files: '*.zip'
