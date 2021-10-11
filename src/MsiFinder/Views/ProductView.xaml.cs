@@ -5,7 +5,7 @@ using System.Windows.Controls;
 namespace MsiFinder.Views
 {
     /// <summary>
-    /// Interaction logic for ProductView.xaml
+    /// Interaction logic for ProductView.xaml.
     /// </summary>
     public partial class ProductView : UserControl
     {
