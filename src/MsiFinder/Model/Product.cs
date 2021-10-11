@@ -1,94 +1,55 @@
-﻿using System;
+﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
+
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using Microsoft.Win32;
-using static MsiFinder.Model.NativeMethods;
-using static MsiFinder.Model.NativeMethods.ERROR;
 
 namespace MsiFinder.Model
 {
-    public record Product : Record
+    public class Product : Record
     {
+        private readonly Lazy<string> _location;
+        private string _name;
+        private string _version;
+        private string _registryKey;
+
         public Product(Guid code, InstallContext context, string sid)
             : base(code, context, sid)
         {
+            _location = new Lazy<string>(() => GetProperty(InstallProperty.InstallLocation));
         }
 
-        public string Name => GetProperty(INSTALLPROPERTY_PRODUCTNAME);
+        public string Name => _name ??= GetProperty(InstallProperty.ProductName);
 
-        public string Version => GetProperty(INSTALLPROPERTY_VERSIONSTRING);
+        public string Version => _version ??= GetProperty(InstallProperty.VersionString);
 
-        public string Location => GetProperty(INSTALLPROPERTY_INSTALLLOCATION);
+        public string Location => _location.Value;
 
-        public override string RegistryKey
-        {
-            get
-            {
-                string sid = Sid ?? SystemSid;
-                return Registry.LocalMachine.Name +
-                       $@"\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\{sid}\Products\{PackedCode}";
-            }
-        }
-
-        private string GetProperty(string property)
-        {
-            var stringBuilder = new StringBuilder(MAX_PATH);
-            int length = stringBuilder.Capacity;
-
-            ERROR result = MsiGetProductInfoEx(
-                GuidToCode(Code),
-                Sid,
-                Context,
-                property,
-                stringBuilder,
-                ref length);
-
-            if (length == 0 || result == ERROR_UNKNOWN_PROPERTY)
-            {
-                return null;
-            }
-
-            return result is ERROR_SUCCESS
-                ? stringBuilder.ToString()
-                : throw new Win32Exception((int)result);
-        }
+        public override string RegistryKey => _registryKey ??= GetRegistryKey();
 
         public static IEnumerable<Product> GetProducts()
         {
-            var productCodeBuilder = new StringBuilder(CodeLength);
-            var userSidBuilder = new StringBuilder(MAX_PATH);
-            int index = 0;
-
-            while (true)
+            for (int index = 0; ; index++)
             {
-                int userIdSize = userSidBuilder.Capacity;
-                ERROR result = MsiEnumProductsEx(
-                    null,
-                    null,
-                    InstallContext.All,
-                    index++,
-                    productCodeBuilder,
-                    out InstallContext context,
-                    userSidBuilder,
-                    ref userIdSize);
-
-                if (result == ERROR_SUCCESS)
+                Product product = MsiHelper.MsiEnumProductsEx(index);
+                if (product != null)
                 {
-                    yield return new Product(
-                        code: Guid.Parse(productCodeBuilder.ToString()),
-                        context: context,
-                        sid: context != InstallContext.Machine ? userSidBuilder.ToString() : null);
-                }
-                else if (result == ERROR_NO_MORE_ITEMS)
-                {
-                    break;
+                    yield return product;
                 }
                 else
                 {
-                    throw new Win32Exception((int)result);
+                    break;
                 }
             }
+        }
+
+        public string GetProperty(string property) => MsiHelper.MsiGetProductInfoEx(Code, Sid, Context, property);
+
+        private string GetRegistryKey()
+        {
+            string sid = Sid ?? SystemSid;
+            return Registry.LocalMachine.Name +
+                   $@"\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\{sid}\Products\{PackedCode}";
         }
     }
 }

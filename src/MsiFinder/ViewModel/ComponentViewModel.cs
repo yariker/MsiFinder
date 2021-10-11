@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
+
+using System.Linq;
 using System.Threading.Tasks;
 using MsiFinder.Model;
 
@@ -21,6 +23,20 @@ namespace MsiFinder.ViewModel
             {
                 Items.Insert(Items.Count - 1, new ProductViewModel(product));
             }
+        }
+
+        protected override bool CanRepair() => false;
+
+        protected override void Repair()
+        {
+            // Cannot repair a component.
+        }
+
+        protected override bool CanUninstall() => false;
+
+        protected override void Uninstall()
+        {
+            // Cannot uninstall a component.
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace MsiFinder.Model
+﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
+
+namespace MsiFinder.Model
 {
     public enum InstallState
     {
@@ -16,5 +18,5 @@
         Local = 3,
         Source = 4,
         Default = 5,
-    };
+    }
 }

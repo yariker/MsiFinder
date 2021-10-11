@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -11,7 +13,7 @@ using System.Windows.Input;
 using MsiFinder.Model;
 using MsiFinder.ViewModel.Core;
 using MvvmMicro;
-using static MsiFinder.Model.NativeMethods;
+using Windows.Win32;
 
 namespace MsiFinder.ViewModel
 {
@@ -21,8 +23,8 @@ namespace MsiFinder.ViewModel
         private const int ItemDelay = 100;
 
         private static readonly char[] InvalidLocationChars = Path.GetInvalidPathChars()
-                                                                  .Except(new[] { '*', '?' })
-                                                                  .ToArray();
+            .Except(new[] { '*', '?' })
+            .ToArray();
 
         private CancellationTokenSource _cancellationTokenSource;
         private string _searchQuery;
@@ -98,18 +100,21 @@ namespace MsiFinder.ViewModel
                         {
                             return ValidationResult.Invalid("Invalid product/component code");
                         }
+
                         break;
                     case SearchBy.Name:
                         if (string.IsNullOrWhiteSpace(SearchQuery))
                         {
                             return ValidationResult.Invalid("Invalid product name");
                         }
+
                         break;
                     case SearchBy.Location:
                         if (string.IsNullOrWhiteSpace(SearchQuery) || SearchQuery.IndexOfAny(InvalidLocationChars) >= 0)
                         {
                             return ValidationResult.Invalid("Invalid product location");
                         }
+
                         break;
                 }
             }
@@ -146,7 +151,7 @@ namespace MsiFinder.ViewModel
                                     filter = x => x.Name?.IndexOf(SearchQuery, StringComparison.OrdinalIgnoreCase) >= 0;
                                     break;
                                 case SearchBy.Location:
-                                    filter = x => PathMatchSpecEx(x.Location, SearchQuery, MatchPatternFlags.Normal) == S_OK;
+                                    filter = x => PInvoke.PathMatchSpecEx(x.Location, SearchQuery, Constants.PMSF_NORMAL) == Constants.S_OK;
                                     break;
                                 default:
                                     filter = _ => true;
@@ -194,11 +199,11 @@ namespace MsiFinder.ViewModel
         private async Task SearchProductAsync(Func<Product, bool> filter)
         {
             await foreach (IList<Product> chunk in Product.GetProducts()
-                                                          .ToObservable(Scheduler.Default)
-                                                          .Where(filter)
-                                                          .Buffer(ItemRate)
-                                                          .ToAsyncEnumerable()
-                                                          .WithCancellation(_cancellationTokenSource.Token))
+                .ToObservable(Scheduler.Default)
+                .Where(filter)
+                .Buffer(ItemRate)
+                .ToAsyncEnumerable()
+                .WithCancellation(_cancellationTokenSource.Token))
             {
                 chunk.ForEach(x => Results.Add(new ProductViewModel(x)));
                 await Task.Delay(ItemDelay);
@@ -208,11 +213,11 @@ namespace MsiFinder.ViewModel
         private async Task SearchComponentAsync(Func<Component, bool> filter)
         {
             await foreach (IList<Component> chunk in Component.GetComponents()
-                                                              .ToObservable(Scheduler.Default)
-                                                              .Where(filter)
-                                                              .Buffer(ItemRate)
-                                                              .ToAsyncEnumerable()
-                                                              .WithCancellation(_cancellationTokenSource.Token))
+                .ToObservable(Scheduler.Default)
+                .Where(filter)
+                .Buffer(ItemRate)
+                .ToAsyncEnumerable()
+                .WithCancellation(_cancellationTokenSource.Token))
             {
                 chunk.ForEach(x => Results.Add(new ComponentViewModel(x)));
                 await Task.Delay(ItemDelay);

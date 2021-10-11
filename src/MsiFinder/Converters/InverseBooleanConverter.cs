@@ -1,3 +1,5 @@
+﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
+
 using System;
 using System.Globalization;
 using System.Windows.Data;

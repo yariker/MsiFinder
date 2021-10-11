@@ -1,4 +1,6 @@
-﻿using MsiFinder.Model;
+﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
+
+using MsiFinder.Model;
 
 namespace MsiFinder.ViewModel
 {

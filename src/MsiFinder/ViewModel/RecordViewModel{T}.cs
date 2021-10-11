@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
+
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -12,15 +14,11 @@ using MvvmMicro;
 
 namespace MsiFinder.ViewModel
 {
-    public abstract class RecordViewModel<T> : RecordViewModel where T : Record
+    public abstract class RecordViewModel<T> : RecordViewModel
+        where T : Record
     {
         private readonly Lazy<string> _account;
         private TextItemViewModel _textItem;
-
-        private RecordViewModel()
-        {
-            _account = new Lazy<string>(GetAccount);
-        }
 
         protected RecordViewModel(T model, bool loadable = true)
             : this()
@@ -31,11 +29,18 @@ namespace MsiFinder.ViewModel
             OpenRegistryEditorCommand = new RelayCommand(OpenRegistryEditor, CanOpenRegistryEditor);
             CopyCodeCommand = new RelayCommand(CopyCode);
             CopyRegistryCodeCommand = new RelayCommand(CopyRegistryCode);
+            UninstallCommand = new RelayCommand(Uninstall, CanUninstall);
+            RepairCommand = new RelayCommand(Repair, CanRepair);
 
             if (loadable)
             {
                 Items.Add(_textItem = new TextItemViewModel());
             }
+        }
+
+        private RecordViewModel()
+        {
+            _account = new Lazy<string>(GetAccount);
         }
 
         public T Model { get; }
@@ -54,7 +59,19 @@ namespace MsiFinder.ViewModel
 
         public override ICommand CopyRegistryCodeCommand { get; }
 
+        public override ICommand RepairCommand { get; }
+
+        public override ICommand UninstallCommand { get; }
+
         protected virtual Task LoadAsync() => Task.CompletedTask;
+
+        protected abstract bool CanUninstall();
+
+        protected abstract void Uninstall();
+
+        protected abstract bool CanRepair();
+
+        protected abstract void Repair();
 
         private async Task ExpandAsync()
         {
@@ -87,10 +104,7 @@ namespace MsiFinder.ViewModel
             {
                 if (Directory.Exists(Location))
                 {
-                    Process.Start(new ProcessStartInfo("explorer", Location)
-                    {
-                        UseShellExecute = true,
-                    });
+                    Process.Start(new ProcessStartInfo("explorer", Location) { UseShellExecute = true, });
                 }
                 else if (File.Exists(Location))
                 {
@@ -106,7 +120,7 @@ namespace MsiFinder.ViewModel
             }
         }
 
-        private bool CanOpenRegistryEditor() => Registry.GetValue(Model.RegistryKey, string.Empty, string.Empty) != null;
+        private bool CanOpenRegistryEditor() => Model.CheckExists();
 
         private void OpenRegistryEditor()
         {
@@ -117,10 +131,7 @@ namespace MsiFinder.ViewModel
 
             try
             {
-                Process.Start(new ProcessStartInfo("regedit")
-                {
-                    UseShellExecute = true,
-                });
+                Process.Start(new ProcessStartInfo("regedit") { UseShellExecute = true });
             }
             catch (Win32Exception)
             {

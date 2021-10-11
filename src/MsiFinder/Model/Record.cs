@@ -1,11 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
+
+using System;
 using System.Linq;
+using Microsoft.Win32;
 
 namespace MsiFinder.Model
 {
-    public abstract record Record
+    public abstract class Record
     {
-        public const int CodeLength = 39;
         public const string SystemSid = "S-1-5-18";
 
         protected Record(Guid code, InstallContext context, string sid)
@@ -25,6 +27,21 @@ namespace MsiFinder.Model
 
         public abstract string RegistryKey { get; }
 
-        protected static string GuidToCode(Guid guid) => guid.ToString("B").ToUpper();
+        public bool CheckExists() => Registry.GetValue(RegistryKey, string.Empty, string.Empty) != null;
+
+        public override bool Equals(object obj) => ReferenceEquals(this, obj) || obj is Record other && Equals(other);
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = Code.GetHashCode();
+                hashCode = (hashCode * 397) ^ (int)Context;
+                hashCode = (hashCode * 397) ^ (Sid != null ? Sid.GetHashCode() : 0);
+                return hashCode;
+            }
+        }
+
+        protected bool Equals(Record other) => Code.Equals(other.Code) && Context == other.Context && Sid == other.Sid;
     }
 }

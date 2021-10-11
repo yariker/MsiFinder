@@ -1,4 +1,6 @@
-﻿using System.Windows.Input;
+﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
+
+using System.Windows.Input;
 
 namespace MsiFinder.ViewModel
 {
@@ -13,5 +15,9 @@ namespace MsiFinder.ViewModel
         public abstract ICommand CopyCodeCommand { get; }
 
         public abstract ICommand CopyRegistryCodeCommand { get; }
+
+        public abstract ICommand RepairCommand { get; }
+
+        public abstract ICommand UninstallCommand { get; }
     }
 }

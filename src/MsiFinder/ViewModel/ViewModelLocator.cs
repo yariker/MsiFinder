@@ -1,4 +1,6 @@
-﻿using Autofac;
+﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
+
+using Autofac;
 
 namespace MsiFinder.ViewModel
 {
@@ -11,8 +13,8 @@ namespace MsiFinder.ViewModel
             Container = builder.Build();
         }
 
-        private IContainer Container { get; }
-
         public MainViewModel Main => Container.Resolve<MainViewModel>();
+
+        private IContainer Container { get; }
     }
 }

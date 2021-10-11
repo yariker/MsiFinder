@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,16 +17,16 @@ namespace MsiFinder.ViewModel.Core
         private Dictionary<string, PropertyInfo> _properties;
 
         /// <inheritdoc />
-        public bool HasErrors => _errors.Count > 0;
+        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
         /// <inheritdoc />
-        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+        public bool HasErrors => _errors.Count > 0;
 
         private Dictionary<string, PropertyInfo> Properties =>
             _properties ??= GetType().GetProperties(BindingFlags.Instance |
                                                     BindingFlags.FlattenHierarchy |
                                                     BindingFlags.Public)
-                                     .ToDictionary(x => x.Name);
+                .ToDictionary(x => x.Name);
 
         public bool Validate()
         {
