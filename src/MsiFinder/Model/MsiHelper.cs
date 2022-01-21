@@ -3,8 +3,8 @@
 using System;
 using System.ComponentModel;
 using Windows.Win32;
+using Windows.Win32.Foundation;
 using Windows.Win32.System.ApplicationInstallationAndServicing;
-using Windows.Win32.System.Diagnostics.Debug;
 
 namespace MsiFinder.Model
 {
@@ -56,7 +56,7 @@ namespace MsiFinder.Model
 
         public static unsafe Component MsiEnumComponents(string userId, InstallContext context, int index)
         {
-            var ownerIdSize = Constants.MAX_PATH;
+            var ownerIdSize = PInvoke.MAX_PATH;
             var ownerId = stackalloc char[(int)ownerIdSize];
             var componentCode = stackalloc char[CodeSize + 1];
             var installContext = MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_NONE;
@@ -88,7 +88,7 @@ namespace MsiFinder.Model
 
         public static unsafe Product MsiEnumProductsEx(int index)
         {
-            var ownerIdSize = Constants.MAX_PATH;
+            var ownerIdSize = PInvoke.MAX_PATH;
             var ownerId = stackalloc char[(int)ownerIdSize];
             var productCode = stackalloc char[CodeSize + 1];
             var installContext = MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_NONE;
@@ -121,7 +121,7 @@ namespace MsiFinder.Model
 
         public static unsafe Product MsiEnumClients(Guid componentCode, string userId, InstallContext context, int index)
         {
-            var ownerIdSize = Constants.MAX_PATH;
+            var ownerIdSize = PInvoke.MAX_PATH;
             var ownerId = stackalloc char[(int)ownerIdSize - 1];
             var productCode = stackalloc char[CodeSize + 1];
             var installContext = MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_NONE;

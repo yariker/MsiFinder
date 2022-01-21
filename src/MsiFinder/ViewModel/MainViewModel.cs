@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -34,9 +35,12 @@ namespace MsiFinder.ViewModel
 
         public MainViewModel()
         {
+            Version = Assembly.GetExecutingAssembly().GetName().Version;
             SearchCommand = new RelayCommand(Search);
             StopCommand = new RelayCommand(Stop);
         }
+
+        public Version Version { get; }
 
         [Validate]
         public string SearchQuery
@@ -151,7 +155,7 @@ namespace MsiFinder.ViewModel
                                     filter = x => x.Name?.IndexOf(SearchQuery, StringComparison.OrdinalIgnoreCase) >= 0;
                                     break;
                                 case SearchBy.Location:
-                                    filter = x => PInvoke.PathMatchSpecEx(x.Location, SearchQuery, Constants.PMSF_NORMAL) == Constants.S_OK;
+                                    filter = x => PInvoke.PathMatchSpecEx(x.Location, SearchQuery, PInvoke.PMSF_NORMAL) == PInvoke.S_OK;
                                     break;
                                 default:
                                     filter = _ => true;
