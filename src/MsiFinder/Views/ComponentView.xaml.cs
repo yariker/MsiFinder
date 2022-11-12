@@ -2,16 +2,15 @@
 
 using System.Windows.Controls;
 
-namespace MsiFinder.Views
+namespace MsiFinder.Views;
+
+/// <summary>
+/// Interaction logic for ComponentView.xaml
+/// </summary>
+public partial class ComponentView : UserControl
 {
-    /// <summary>
-    /// Interaction logic for ComponentView.xaml
-    /// </summary>
-    public partial class ComponentView : UserControl
+    public ComponentView()
     {
-        public ComponentView()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

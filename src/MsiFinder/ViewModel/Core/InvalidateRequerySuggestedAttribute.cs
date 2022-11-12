@@ -2,10 +2,9 @@
 
 using System;
 
-namespace MsiFinder.ViewModel.Core
+namespace MsiFinder.ViewModel.Core;
+
+[AttributeUsage(AttributeTargets.Property)]
+public class InvalidateRequerySuggestedAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Property)]
-    public class InvalidateRequerySuggestedAttribute : Attribute
-    {
-    }
 }

@@ -3,10 +3,9 @@
 using System.Collections.ObjectModel;
 using MvvmMicro;
 
-namespace MsiFinder.ViewModel
+namespace MsiFinder.ViewModel;
+
+public abstract class ItemViewModel : ViewModelBase
 {
-    public abstract class ItemViewModel : ViewModelBase
-    {
-        public ObservableCollection<ItemViewModel> Items { get; } = new();
-    }
+    public ObservableCollection<ItemViewModel> Items { get; } = new();
 }

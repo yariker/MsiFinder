@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
 
-namespace MsiFinder.Model
+namespace MsiFinder.Model;
+
+public enum TextItemType
 {
-    public enum TextItemType
-    {
-        Information,
-        Error,
-    }
+    Information,
+    Error,
 }

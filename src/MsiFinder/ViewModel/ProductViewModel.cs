@@ -11,73 +11,72 @@ using MsiFinder.ViewModel.Messages;
 using MvvmMicro;
 using Component = MsiFinder.Model.Component;
 
-namespace MsiFinder.ViewModel
+namespace MsiFinder.ViewModel;
+
+public class ProductViewModel : RecordViewModel<Product>
 {
-    public class ProductViewModel : RecordViewModel<Product>
+    public ProductViewModel(Product model)
+        : base(model)
     {
-        public ProductViewModel(Product model)
-            : base(model)
+        ShowDetailsCommand = new RelayCommand(ShowDetails, () => Model.CheckExists());
+    }
+
+    public override string Location => Model.Location;
+
+    public ICommand ShowDetailsCommand { get; }
+
+    protected override async Task LoadAsync()
+    {
+        Component[] components = await Task.Run(() => Component.GetComponents().ToArray());
+        foreach (Component component in components)
         {
-            ShowDetailsCommand = new RelayCommand(ShowDetails, () => Model.CheckExists());
-        }
-
-        public override string Location => Model.Location;
-
-        public ICommand ShowDetailsCommand { get; }
-
-        protected override async Task LoadAsync()
-        {
-            Component[] components = await Task.Run(() => Component.GetComponents().ToArray());
-            foreach (Component component in components)
+            Product[] products = await Task.Run(() => component.GetProducts().ToArray());
+            if (products.Contains(Model))
             {
-                Product[] products = await Task.Run(() => component.GetProducts().ToArray());
-                if (products.Contains(Model))
-                {
-                    Items.Insert(Items.Count - 1, new ComponentViewModel(component, component.GetPath(Model), false));
-                }
+                Items.Insert(Items.Count - 1, new ComponentViewModel(component, component.GetPath(Model), false));
             }
         }
+    }
 
-        protected override bool CanRepair() => Model.CheckExists();
+    protected override bool CanRepair() => Model.CheckExists();
 
-        protected override bool CanUninstall() => Model.CheckExists();
+    protected override bool CanUninstall() => Model.CheckExists();
 
-        protected override void Repair()
+    protected override void Repair()
+    {
+        try
         {
-            try
+            Process.Start(new ProcessStartInfo("msiexec")
             {
-                Process.Start(new ProcessStartInfo("msiexec")
-                {
-                    Arguments = $"/f {Model.Code:B}",
-                    UseShellExecute = true,
-                });
-            }
-            catch (Win32Exception)
-            {
-                // Don't care.
-            }
+                Arguments = $"/f {Model.Code:B}",
+                UseShellExecute = true,
+            });
         }
-
-        protected override void Uninstall()
+        catch (Win32Exception)
         {
-            try
-            {
-                Process.Start(new ProcessStartInfo("msiexec")
-                {
-                    Arguments = $"/x {Model.Code:B}",
-                    UseShellExecute = true,
-                });
-            }
-            catch (Win32Exception)
-            {
-                // Don't care.
-            }
+            // Don't care.
         }
+    }
 
-        private void ShowDetails()
+    protected override void Uninstall()
+    {
+        try
         {
-            var viewModel = new ProductDetailsViewModel(Model);
-            Messenger.Send(new ShowViewMessage<ProductDetailsViewModel>(viewModel));
+            Process.Start(new ProcessStartInfo("msiexec")
+            {
+                Arguments = $"/x {Model.Code:B}",
+                UseShellExecute = true,
+            });
         }
+        catch (Win32Exception)
+        {
+            // Don't care.
+        }
+    }
+
+    private void ShowDetails()
+    {
+        var viewModel = new ProductDetailsViewModel(Model);
+        Messenger.Send(new ShowViewMessage<ProductDetailsViewModel>(viewModel));
     }
 }

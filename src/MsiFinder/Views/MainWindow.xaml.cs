@@ -7,34 +7,33 @@ using MsiFinder.ViewModel;
 using MsiFinder.ViewModel.Messages;
 using MvvmMicro;
 
-namespace MsiFinder.Views
+namespace MsiFinder.Views;
+
+/// <summary>
+/// Interaction logic for MainWindow.xaml.
+/// </summary>
+public partial class MainWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml.
-    /// </summary>
-    public partial class MainWindow : Window
+    public MainWindow()
     {
-        public MainWindow()
-        {
-            InitializeComponent();
+        InitializeComponent();
 
-            Messenger.Default.Register<ShowViewMessage<ProductDetailsViewModel>>(this, msg =>
+        Messenger.Default.Register<ShowViewMessage<ProductDetailsViewModel>>(this, msg =>
+        {
+            var view = new ProductDetailsWindow
             {
-                var view = new ProductDetailsWindow
-                {
-                    Owner = this,
-                    DataContext = msg.ViewModel,
-                };
+                Owner = this,
+                DataContext = msg.ViewModel,
+            };
 
-                view.ShowDialog();
-            });
-        }
+            view.ShowDialog();
+        });
+    }
 
-        private void TreeViewItemRightMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            var treeViewItem = (TreeViewItem)sender;
-            treeViewItem.IsSelected = true;
-            e.Handled = true;
-        }
+    private void TreeViewItemRightMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        var treeViewItem = (TreeViewItem)sender;
+        treeViewItem.IsSelected = true;
+        e.Handled = true;
     }
 }

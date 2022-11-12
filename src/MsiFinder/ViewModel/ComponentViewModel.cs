@@ -4,39 +4,38 @@ using System.Linq;
 using System.Threading.Tasks;
 using MsiFinder.Model;
 
-namespace MsiFinder.ViewModel
+namespace MsiFinder.ViewModel;
+
+public class ComponentViewModel : RecordViewModel<Component>
 {
-    public class ComponentViewModel : RecordViewModel<Component>
+    public ComponentViewModel(Component model, string location = null, bool expandable = true)
+        : base(model, expandable)
     {
-        public ComponentViewModel(Component model, string location = null, bool expandable = true)
-            : base(model, expandable)
+        Location = location;
+    }
+
+    public override string Location { get; }
+
+    protected override async Task LoadAsync()
+    {
+        Product[] products = await Task.Run(() => Model.GetProducts().ToArray());
+        foreach (Product product in products)
         {
-            Location = location;
+            Items.Insert(Items.Count - 1, new ProductViewModel(product));
         }
+    }
 
-        public override string Location { get; }
+    protected override bool CanRepair() => false;
 
-        protected override async Task LoadAsync()
-        {
-            Product[] products = await Task.Run(() => Model.GetProducts().ToArray());
-            foreach (Product product in products)
-            {
-                Items.Insert(Items.Count - 1, new ProductViewModel(product));
-            }
-        }
+    protected override void Repair()
+    {
+        // Cannot repair a component.
+    }
 
-        protected override bool CanRepair() => false;
+    protected override bool CanUninstall() => false;
 
-        protected override void Repair()
-        {
-            // Cannot repair a component.
-        }
-
-        protected override bool CanUninstall() => false;
-
-        protected override void Uninstall()
-        {
-            // Cannot uninstall a component.
-        }
+    protected override void Uninstall()
+    {
+        // Cannot uninstall a component.
     }
 }

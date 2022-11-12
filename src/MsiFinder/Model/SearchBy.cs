@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Yaroslav Bugaria. All rights reserved.
 
-namespace MsiFinder.Model
+namespace MsiFinder.Model;
+
+public enum SearchBy
 {
-    public enum SearchBy
-    {
-        None,
-        Code,
-        UpgradeCode,
-        ProductName,
-        Location,
-    }
+    None,
+    Code,
+    UpgradeCode,
+    ProductName,
+    Location,
 }

@@ -6,229 +6,228 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.ApplicationInstallationAndServicing;
 
-namespace MsiFinder.Model
+namespace MsiFinder.Model;
+
+internal static class MsiHelper
 {
-    internal static class MsiHelper
+    private const int CodeSize = 38;
+
+    public static unsafe string MsiGetComponentPath(
+        Guid productCode,
+        Guid componentCode,
+        string userId,
+        InstallContext context)
     {
-        private const int CodeSize = 38;
+        uint pathSize = 0;
 
-        public static unsafe string MsiGetComponentPath(
-            Guid productCode,
-            Guid componentCode,
-            string userId,
-            InstallContext context)
+        INSTALLSTATE state = PInvoke.MsiGetComponentPathEx(
+            szProductCode: GuidToCode(productCode),
+            szComponentCode: GuidToCode(componentCode),
+            szUserSid: userId,
+            dwContext: (MSIINSTALLCONTEXT)context,
+            lpOutPathBuffer: null,
+            pcchOutPathBuffer: &pathSize);
+
+        if (state != INSTALLSTATE.INSTALLSTATE_MOREDATA)
         {
-            uint pathSize = 0;
-
-            INSTALLSTATE state = PInvoke.MsiGetComponentPathEx(
-                szProductCode: GuidToCode(productCode),
-                szComponentCode: GuidToCode(componentCode),
-                szUserSid: userId,
-                dwContext: (MSIINSTALLCONTEXT)context,
-                lpOutPathBuffer: null,
-                pcchOutPathBuffer: &pathSize);
-
-            if (state != INSTALLSTATE.INSTALLSTATE_MOREDATA)
-            {
-                return null;
-            }
-
-            if (pathSize == 0)
-            {
-                return string.Empty;
-            }
-
-            // Increase buffer for terminating NULL character.
-            pathSize++;
-
-            var path = stackalloc char[(int)pathSize];
-
-            state = PInvoke.MsiGetComponentPathEx(
-                szProductCode: GuidToCode(productCode),
-                szComponentCode: GuidToCode(componentCode),
-                szUserSid: userId,
-                dwContext: (MSIINSTALLCONTEXT)context,
-                lpOutPathBuffer: path,
-                pcchOutPathBuffer: &pathSize);
-
-            return new string(path, 0, (int)pathSize);
+            return null;
         }
 
-        public static unsafe Component MsiEnumComponents(string userId, InstallContext context, int index)
+        if (pathSize == 0)
         {
-            var ownerIdSize = PInvoke.MAX_PATH;
-            var ownerId = stackalloc char[(int)ownerIdSize];
-            var componentCode = stackalloc char[CodeSize + 1];
-            var installContext = MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_NONE;
-
-            var result = (WIN32_ERROR)PInvoke.MsiEnumComponentsEx(
-                szUserSid: userId,
-                dwContext: (uint)context,
-                dwIndex: (uint)index,
-                szInstalledComponentCode: componentCode,
-                pdwInstalledContext: &installContext,
-                szSid: ownerId,
-                pcchSid: &ownerIdSize);
-
-            switch (result)
-            {
-                case WIN32_ERROR.NO_ERROR:
-                    return new Component(
-                        code: Guid.Parse(new string(componentCode, 0, CodeSize)),
-                        context: (InstallContext)installContext,
-                        sid: GetSid(installContext, ownerId, ownerIdSize));
-
-                case WIN32_ERROR.ERROR_NO_MORE_ITEMS:
-                    return null;
-
-                default:
-                    throw new Win32Exception((int)result);
-            }
+            return string.Empty;
         }
 
-        public static Product MsiEnumProductsEx(int index) => MsiEnumProductsEx(null, index);
+        // Increase buffer for terminating NULL character.
+        pathSize++;
 
-        public static unsafe Product MsiEnumProductsEx(Guid? productCode, int index = 0)
-        {
-            var ownerIdSize = PInvoke.MAX_PATH;
-            var ownerId = stackalloc char[(int)ownerIdSize];
-            var installedProductCode = stackalloc char[CodeSize + 1];
-            var installContext = MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_NONE;
+        var path = stackalloc char[(int)pathSize];
 
-            var result = (WIN32_ERROR)PInvoke.MsiEnumProductsEx(
-                productCode is Guid code ? GuidToCode(code) : null,
-                null,
-                (uint)MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_ALL,
-                (uint)index,
-                installedProductCode,
-                &installContext,
-                ownerId,
-                &ownerIdSize);
+        state = PInvoke.MsiGetComponentPathEx(
+            szProductCode: GuidToCode(productCode),
+            szComponentCode: GuidToCode(componentCode),
+            szUserSid: userId,
+            dwContext: (MSIINSTALLCONTEXT)context,
+            lpOutPathBuffer: path,
+            pcchOutPathBuffer: &pathSize);
 
-            switch (result)
-            {
-                case WIN32_ERROR.NO_ERROR:
-                    return new Product(
-                        code: productCode ?? Guid.Parse(new string(installedProductCode, 0, CodeSize)),
-                        context: (InstallContext)installContext,
-                        sid: GetSid(installContext, ownerId, ownerIdSize));
-
-                case WIN32_ERROR.ERROR_NO_MORE_ITEMS:
-                    return null;
-
-                default:
-                    throw new Win32Exception((int)result);
-            }
-        }
-
-        public static unsafe Product MsiEnumRelatedProductsEx(Guid upgradeCode, int index)
-        {
-            var productCode = stackalloc char[CodeSize + 1];
-
-            var result = (WIN32_ERROR)PInvoke.MsiEnumRelatedProducts(
-                GuidToCode(upgradeCode),
-                0,
-                (uint)index,
-                productCode);
-
-            switch (result)
-            {
-                case WIN32_ERROR.NO_ERROR:
-                    return MsiEnumProductsEx(Guid.Parse(new string(productCode, 0, CodeSize)));
-
-                case WIN32_ERROR.ERROR_NO_MORE_ITEMS:
-                    return null;
-
-                default:
-                    throw new Win32Exception((int)result);
-            }
-        }
-
-        public static unsafe Product MsiEnumClients(Guid componentCode, string userId, InstallContext context, int index)
-        {
-            var ownerIdSize = PInvoke.MAX_PATH;
-            var ownerId = stackalloc char[(int)ownerIdSize - 1];
-            var productCode = stackalloc char[CodeSize + 1];
-            var installContext = MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_NONE;
-
-            var result = (WIN32_ERROR)PInvoke.MsiEnumClientsEx(
-                szComponent: GuidToCode(componentCode),
-                szUserSid: userId,
-                dwContext: (MSIINSTALLCONTEXT)context,
-                dwProductIndex: (uint)index,
-                szProductBuf: productCode,
-                pdwInstalledContext: &installContext,
-                szSid: ownerId,
-                pcchSid: &ownerIdSize);
-
-            switch (result)
-            {
-                case WIN32_ERROR.NO_ERROR:
-                    return new Product(
-                        code: Guid.Parse(new string(productCode, 0, CodeSize)),
-                        context: (InstallContext)installContext,
-                        sid: GetSid(installContext, ownerId, ownerIdSize));
-
-                case WIN32_ERROR.ERROR_NO_MORE_ITEMS:
-                    return null;
-
-                default:
-                    throw new Win32Exception((int)result);
-            }
-        }
-
-        public static unsafe string MsiGetProductInfoEx(
-            Guid productCode,
-            string userId,
-            InstallContext context,
-            string property)
-        {
-            uint valueSize = 0;
-
-            var result = (WIN32_ERROR)PInvoke.MsiGetProductInfoEx(
-                szProductCode: GuidToCode(productCode),
-                szUserSid: userId,
-                dwContext: (MSIINSTALLCONTEXT)context,
-                szProperty: property,
-                szValue: null,
-                pcchValue: &valueSize);
-
-            if (result == WIN32_ERROR.ERROR_UNKNOWN_PROPERTY)
-            {
-                return null;
-            }
-
-            if (result is not WIN32_ERROR.ERROR_SUCCESS and not WIN32_ERROR.ERROR_MORE_DATA)
-            {
-                throw new Win32Exception((int)result);
-            }
-
-            if (valueSize == 0)
-            {
-                return string.Empty;
-            }
-
-            // Increase buffer for terminating NULL character.
-            valueSize++;
-
-            char* value = stackalloc char[(int)valueSize];
-
-            result = (WIN32_ERROR)PInvoke.MsiGetProductInfoEx(
-                szProductCode: GuidToCode(productCode),
-                szUserSid: userId,
-                dwContext: (MSIINSTALLCONTEXT)context,
-                szProperty: property,
-                szValue: value,
-                pcchValue: &valueSize);
-
-            return result == WIN32_ERROR.ERROR_SUCCESS
-                ? new string(value, 0, (int)valueSize)
-                : throw new Win32Exception((int)result);
-        }
-
-        private static unsafe string GetSid(MSIINSTALLCONTEXT installContext, char* sid, uint sidSize) =>
-            installContext != MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_MACHINE ? new string(sid, 0, (int)sidSize) : null;
-
-        private static string GuidToCode(Guid guid) => guid.ToString("B").ToUpper();
+        return new string(path, 0, (int)pathSize);
     }
+
+    public static unsafe Component MsiEnumComponents(string userId, InstallContext context, int index)
+    {
+        var ownerIdSize = PInvoke.MAX_PATH;
+        var ownerId = stackalloc char[(int)ownerIdSize];
+        var componentCode = stackalloc char[CodeSize + 1];
+        var installContext = MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_NONE;
+
+        var result = (WIN32_ERROR)PInvoke.MsiEnumComponentsEx(
+            szUserSid: userId,
+            dwContext: (uint)context,
+            dwIndex: (uint)index,
+            szInstalledComponentCode: componentCode,
+            pdwInstalledContext: &installContext,
+            szSid: ownerId,
+            pcchSid: &ownerIdSize);
+
+        switch (result)
+        {
+            case WIN32_ERROR.NO_ERROR:
+                return new Component(
+                    code: Guid.Parse(new string(componentCode, 0, CodeSize)),
+                    context: (InstallContext)installContext,
+                    sid: GetSid(installContext, ownerId, ownerIdSize));
+
+            case WIN32_ERROR.ERROR_NO_MORE_ITEMS:
+                return null;
+
+            default:
+                throw new Win32Exception((int)result);
+        }
+    }
+
+    public static Product MsiEnumProductsEx(int index) => MsiEnumProductsEx(null, index);
+
+    public static unsafe Product MsiEnumProductsEx(Guid? productCode, int index = 0)
+    {
+        var ownerIdSize = PInvoke.MAX_PATH;
+        var ownerId = stackalloc char[(int)ownerIdSize];
+        var installedProductCode = stackalloc char[CodeSize + 1];
+        var installContext = MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_NONE;
+
+        var result = (WIN32_ERROR)PInvoke.MsiEnumProductsEx(
+            productCode is Guid code ? GuidToCode(code) : null,
+            null,
+            (uint)MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_ALL,
+            (uint)index,
+            installedProductCode,
+            &installContext,
+            ownerId,
+            &ownerIdSize);
+
+        switch (result)
+        {
+            case WIN32_ERROR.NO_ERROR:
+                return new Product(
+                    code: productCode ?? Guid.Parse(new string(installedProductCode, 0, CodeSize)),
+                    context: (InstallContext)installContext,
+                    sid: GetSid(installContext, ownerId, ownerIdSize));
+
+            case WIN32_ERROR.ERROR_NO_MORE_ITEMS:
+                return null;
+
+            default:
+                throw new Win32Exception((int)result);
+        }
+    }
+
+    public static unsafe Product MsiEnumRelatedProductsEx(Guid upgradeCode, int index)
+    {
+        var productCode = stackalloc char[CodeSize + 1];
+
+        var result = (WIN32_ERROR)PInvoke.MsiEnumRelatedProducts(
+            GuidToCode(upgradeCode),
+            0,
+            (uint)index,
+            productCode);
+
+        switch (result)
+        {
+            case WIN32_ERROR.NO_ERROR:
+                return MsiEnumProductsEx(Guid.Parse(new string(productCode, 0, CodeSize)));
+
+            case WIN32_ERROR.ERROR_NO_MORE_ITEMS:
+                return null;
+
+            default:
+                throw new Win32Exception((int)result);
+        }
+    }
+
+    public static unsafe Product MsiEnumClients(Guid componentCode, string userId, InstallContext context, int index)
+    {
+        var ownerIdSize = PInvoke.MAX_PATH;
+        var ownerId = stackalloc char[(int)ownerIdSize - 1];
+        var productCode = stackalloc char[CodeSize + 1];
+        var installContext = MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_NONE;
+
+        var result = (WIN32_ERROR)PInvoke.MsiEnumClientsEx(
+            szComponent: GuidToCode(componentCode),
+            szUserSid: userId,
+            dwContext: (MSIINSTALLCONTEXT)context,
+            dwProductIndex: (uint)index,
+            szProductBuf: productCode,
+            pdwInstalledContext: &installContext,
+            szSid: ownerId,
+            pcchSid: &ownerIdSize);
+
+        switch (result)
+        {
+            case WIN32_ERROR.NO_ERROR:
+                return new Product(
+                    code: Guid.Parse(new string(productCode, 0, CodeSize)),
+                    context: (InstallContext)installContext,
+                    sid: GetSid(installContext, ownerId, ownerIdSize));
+
+            case WIN32_ERROR.ERROR_NO_MORE_ITEMS:
+                return null;
+
+            default:
+                throw new Win32Exception((int)result);
+        }
+    }
+
+    public static unsafe string MsiGetProductInfoEx(
+        Guid productCode,
+        string userId,
+        InstallContext context,
+        string property)
+    {
+        uint valueSize = 0;
+
+        var result = (WIN32_ERROR)PInvoke.MsiGetProductInfoEx(
+            szProductCode: GuidToCode(productCode),
+            szUserSid: userId,
+            dwContext: (MSIINSTALLCONTEXT)context,
+            szProperty: property,
+            szValue: null,
+            pcchValue: &valueSize);
+
+        if (result == WIN32_ERROR.ERROR_UNKNOWN_PROPERTY)
+        {
+            return null;
+        }
+
+        if (result is not WIN32_ERROR.ERROR_SUCCESS and not WIN32_ERROR.ERROR_MORE_DATA)
+        {
+            throw new Win32Exception((int)result);
+        }
+
+        if (valueSize == 0)
+        {
+            return string.Empty;
+        }
+
+        // Increase buffer for terminating NULL character.
+        valueSize++;
+
+        char* value = stackalloc char[(int)valueSize];
+
+        result = (WIN32_ERROR)PInvoke.MsiGetProductInfoEx(
+            szProductCode: GuidToCode(productCode),
+            szUserSid: userId,
+            dwContext: (MSIINSTALLCONTEXT)context,
+            szProperty: property,
+            szValue: value,
+            pcchValue: &valueSize);
+
+        return result == WIN32_ERROR.ERROR_SUCCESS
+            ? new string(value, 0, (int)valueSize)
+            : throw new Win32Exception((int)result);
+    }
+
+    private static unsafe string GetSid(MSIINSTALLCONTEXT installContext, char* sid, uint sidSize) =>
+        installContext != MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_MACHINE ? new string(sid, 0, (int)sidSize) : null;
+
+    private static string GuidToCode(Guid guid) => guid.ToString("B").ToUpper();
 }

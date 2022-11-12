@@ -2,10 +2,9 @@
 
 using System;
 
-namespace MsiFinder.ViewModel.Core
+namespace MsiFinder.ViewModel.Core;
+
+[AttributeUsage(AttributeTargets.Property)]
+public class ValidateAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Property)]
-    public class ValidateAttribute : Attribute
-    {
-    }
 }
