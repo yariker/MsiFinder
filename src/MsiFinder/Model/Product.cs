@@ -27,11 +27,14 @@ namespace MsiFinder.Model
 
         public override string RegistryKey => _registryKey ??= GetRegistryKey();
 
-        public static IEnumerable<Product> GetProducts()
+        public static IEnumerable<Product> GetProducts(Guid? upgradeCode = null)
         {
             for (int index = 0; ; index++)
             {
-                Product product = MsiHelper.MsiEnumProductsEx(index);
+                Product product = upgradeCode is Guid code
+                    ? MsiHelper.MsiEnumRelatedProductsEx(code, index)
+                    : MsiHelper.MsiEnumProductsEx(index);
+
                 if (product != null)
                 {
                     yield return product;

@@ -86,19 +86,21 @@ namespace MsiFinder.Model
             }
         }
 
-        public static unsafe Product MsiEnumProductsEx(int index)
+        public static Product MsiEnumProductsEx(int index) => MsiEnumProductsEx(null, index);
+
+        public static unsafe Product MsiEnumProductsEx(Guid? productCode, int index = 0)
         {
             var ownerIdSize = PInvoke.MAX_PATH;
             var ownerId = stackalloc char[(int)ownerIdSize];
-            var productCode = stackalloc char[CodeSize + 1];
+            var installedProductCode = stackalloc char[CodeSize + 1];
             var installContext = MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_NONE;
 
             var result = (WIN32_ERROR)PInvoke.MsiEnumProductsEx(
+                productCode is Guid code ? GuidToCode(code) : null,
                 null,
-                (string)null,
                 (uint)MSIINSTALLCONTEXT.MSIINSTALLCONTEXT_ALL,
                 (uint)index,
-                productCode,
+                installedProductCode,
                 &installContext,
                 ownerId,
                 &ownerIdSize);
@@ -107,9 +109,32 @@ namespace MsiFinder.Model
             {
                 case WIN32_ERROR.NO_ERROR:
                     return new Product(
-                        code: Guid.Parse(new string(productCode, 0, CodeSize)),
+                        code: productCode ?? Guid.Parse(new string(installedProductCode, 0, CodeSize)),
                         context: (InstallContext)installContext,
                         sid: GetSid(installContext, ownerId, ownerIdSize));
+
+                case WIN32_ERROR.ERROR_NO_MORE_ITEMS:
+                    return null;
+
+                default:
+                    throw new Win32Exception((int)result);
+            }
+        }
+
+        public static unsafe Product MsiEnumRelatedProductsEx(Guid upgradeCode, int index)
+        {
+            var productCode = stackalloc char[CodeSize + 1];
+
+            var result = (WIN32_ERROR)PInvoke.MsiEnumRelatedProducts(
+                GuidToCode(upgradeCode),
+                0,
+                (uint)index,
+                productCode);
+
+            switch (result)
+            {
+                case WIN32_ERROR.NO_ERROR:
+                    return MsiEnumProductsEx(Guid.Parse(new string(productCode, 0, CodeSize)));
 
                 case WIN32_ERROR.ERROR_NO_MORE_ITEMS:
                     return null;

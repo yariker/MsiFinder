@@ -100,13 +100,14 @@ namespace MsiFinder.ViewModel
                 switch (SearchBy)
                 {
                     case SearchBy.Code:
+                    case SearchBy.UpgradeCode:
                         if (!Guid.TryParse(SearchQuery, out _))
                         {
                             return ValidationResult.Invalid("Invalid product/component code");
                         }
 
                         break;
-                    case SearchBy.Name:
+                    case SearchBy.ProductName:
                         if (string.IsNullOrWhiteSpace(SearchQuery))
                         {
                             return ValidationResult.Invalid("Invalid product name");
@@ -144,14 +145,20 @@ namespace MsiFinder.ViewModel
                     {
                         case SearchFor.Product:
                         {
+                            Guid? upgradeCode = null;
                             Func<Product, bool> filter;
+
                             switch (SearchBy)
                             {
                                 case SearchBy.Code:
                                     Guid code = Guid.Parse(SearchQuery);
                                     filter = x => x.Code == code;
                                     break;
-                                case SearchBy.Name:
+                                case SearchBy.UpgradeCode:
+                                    upgradeCode = Guid.Parse(SearchQuery);
+                                    filter = _ => true;
+                                    break;
+                                case SearchBy.ProductName:
                                     filter = x => x.Name?.IndexOf(SearchQuery, StringComparison.OrdinalIgnoreCase) >= 0;
                                     break;
                                 case SearchBy.Location:
@@ -162,13 +169,14 @@ namespace MsiFinder.ViewModel
                                     break;
                             }
 
-                            await SearchProductAsync(filter);
+                            await SearchProductAsync(upgradeCode, filter);
                             break;
                         }
 
                         case SearchFor.Component:
                         {
                             Func<Component, bool> filter;
+
                             switch (SearchBy)
                             {
                                 case SearchBy.Code:
@@ -200,14 +208,14 @@ namespace MsiFinder.ViewModel
             }
         }
 
-        private async Task SearchProductAsync(Func<Product, bool> filter)
+        private async Task SearchProductAsync(Guid? upgradeCode, Func<Product, bool> filter)
         {
-            await foreach (IList<Product> chunk in Product.GetProducts()
-                .ToObservable(Scheduler.Default)
-                .Where(filter)
-                .Buffer(ItemRate)
-                .ToAsyncEnumerable()
-                .WithCancellation(_cancellationTokenSource.Token))
+            await foreach (IList<Product> chunk in Product.GetProducts(upgradeCode)
+                                                          .ToObservable(Scheduler.Default)
+                                                          .Where(filter)
+                                                          .Buffer(ItemRate)
+                                                          .ToAsyncEnumerable()
+                                                          .WithCancellation(_cancellationTokenSource.Token))
             {
                 chunk.ForEach(x => Results.Add(new ProductViewModel(x)));
                 await Task.Delay(ItemDelay);
@@ -217,11 +225,11 @@ namespace MsiFinder.ViewModel
         private async Task SearchComponentAsync(Func<Component, bool> filter)
         {
             await foreach (IList<Component> chunk in Component.GetComponents()
-                .ToObservable(Scheduler.Default)
-                .Where(filter)
-                .Buffer(ItemRate)
-                .ToAsyncEnumerable()
-                .WithCancellation(_cancellationTokenSource.Token))
+                                                              .ToObservable(Scheduler.Default)
+                                                              .Where(filter)
+                                                              .Buffer(ItemRate)
+                                                              .ToAsyncEnumerable()
+                                                              .WithCancellation(_cancellationTokenSource.Token))
             {
                 chunk.ForEach(x => Results.Add(new ComponentViewModel(x)));
                 await Task.Delay(ItemDelay);
@@ -238,7 +246,7 @@ namespace MsiFinder.ViewModel
 
         private void CoerceFilters()
         {
-            if (SearchFor == SearchFor.Component && SearchBy is SearchBy.Name or SearchBy.Location)
+            if (SearchFor == SearchFor.Component && SearchBy is SearchBy.ProductName or SearchBy.Location)
             {
                 SearchBy = SearchBy.None;
             }

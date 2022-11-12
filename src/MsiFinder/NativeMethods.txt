@@ -1,6 +1,7 @@
 ﻿MsiGetComponentPathEx
 MsiEnumComponentsEx
 MsiEnumProductsEx
+MsiEnumRelatedProducts
 MsiEnumClientsEx
 MsiGetProductInfoEx
 PathMatchSpecEx

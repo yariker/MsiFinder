@@ -6,7 +6,8 @@ namespace MsiFinder.Model
     {
         None,
         Code,
-        Name,
+        UpgradeCode,
+        ProductName,
         Location,
     }
 }
