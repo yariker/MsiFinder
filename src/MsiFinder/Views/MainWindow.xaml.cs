@@ -18,7 +18,7 @@ namespace MsiFinder.Views
         {
             InitializeComponent();
 
-            Messenger.Default.Subscribe<ShowViewMessage<ProductDetailsViewModel>>(this, msg =>
+            Messenger.Default.Register<ShowViewMessage<ProductDetailsViewModel>>(this, msg =>
             {
                 var view = new ProductDetailsWindow
                 {

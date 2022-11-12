@@ -77,7 +77,7 @@ namespace MsiFinder.ViewModel
         private void ShowDetails()
         {
             var viewModel = new ProductDetailsViewModel(Model);
-            Messenger.Publish(new ShowViewMessage<ProductDetailsViewModel>(viewModel));
+            Messenger.Send(new ShowViewMessage<ProductDetailsViewModel>(viewModel));
         }
     }
 }
